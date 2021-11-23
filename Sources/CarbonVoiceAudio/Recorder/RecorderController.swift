@@ -34,9 +34,9 @@ public protocol RecorderControllerDelegate: AnyObject {
 public class RecorderController {
 
     public struct AudioRecordingResult {
-        let url: URL
-        let transcription: String?
-        let recordedTimeInMilliseconds: Int
+        public let url: URL
+        public let transcription: String?
+        public let recordedTimeInMilliseconds: Int
     }
 
     public enum Error: Swift.Error, LocalizedError {
