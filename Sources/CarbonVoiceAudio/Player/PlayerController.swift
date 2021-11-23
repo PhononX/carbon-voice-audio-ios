@@ -63,7 +63,7 @@ public class PlayerController {
     }
 }
 
-extension PlayerController: PlayerControllerProtocol {
+public extension PlayerController: PlayerControllerProtocol {
     var isPlaying: Bool {
         playerController?.player?.timeControlStatus == .playing
     }

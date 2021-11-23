@@ -87,7 +87,7 @@ public class RecorderController {
     }
 }
 
-extension RecorderController: RecorderControllerProtocol {
+public extension RecorderController: RecorderControllerProtocol {
     var isRecording: Bool {
         audioRecorder?.isRecording == true
     }

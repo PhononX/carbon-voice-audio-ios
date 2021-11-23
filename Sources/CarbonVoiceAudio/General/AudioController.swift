@@ -131,7 +131,7 @@ public class AudioController {
 
 // MARK: - AudioControllerProtocol
 
-extension AudioController: AudioControllerProtocol {
+public extension AudioController: AudioControllerProtocol {
     func setSessionCategory(_ category: String, completion: (Result<Void, Error>) -> Void) {
         do {
             guard let category = getAudioSessionCategoryFromString(category) else {
@@ -194,7 +194,7 @@ extension AudioController: AudioControllerProtocol {
 
 // MARK: - Helpers
 
-extension AudioController {
+public extension AudioController {
     private func getAllAudioPorts() -> [AVAudioSession.Port] {
         var allPorts: [AVAudioSession.Port] = [
             AVAudioSession.Port.lineIn,
