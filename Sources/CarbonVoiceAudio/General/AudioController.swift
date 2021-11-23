@@ -32,7 +32,7 @@ public class AudioController {
 
     public weak var delegate: AudioControllerDelegate?
 
-    init() {
+    public init() {
         setupNotifications()
     }
 

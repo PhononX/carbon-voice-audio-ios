@@ -69,6 +69,8 @@ public class RecorderController {
 
     public weak var delegate: RecorderControllerDelegate?
 
+    public init() {}
+
     private func startTimer() {
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true, block: { [weak self] _ in
             guard let self = self else { return }

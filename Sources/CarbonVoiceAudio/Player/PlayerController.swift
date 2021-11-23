@@ -42,6 +42,8 @@ public class PlayerController {
 
     public weak var delegate: PlayerControllerDelegate?
 
+    public init() {}
+
     deinit {
         if let millisecondTimeObserverToken = millisecondTimeObserverToken {
             if let player = playerController?.player {
