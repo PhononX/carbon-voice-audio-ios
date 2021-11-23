@@ -43,7 +43,7 @@ public class RecorderController {
         case deniedRecordPermissionRequest
         case failedToInstantiateAVAudioRecorder
 
-        var errorDescription: String? {
+        public var errorDescription: String? {
             switch self {
             case .deniedRecordPermissionRequest:
                 return "Failed to find permission to access the microphone, go to settings and turn it on from there"
@@ -65,7 +65,7 @@ public class RecorderController {
 
     private var timer: Timer?
 
-    private (set) var isSessionActive: Bool = false
+    public var isSessionActive: Bool = false
 
     public weak var delegate: RecorderControllerDelegate?
 
