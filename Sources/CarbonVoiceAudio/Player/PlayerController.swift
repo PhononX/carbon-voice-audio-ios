@@ -40,7 +40,7 @@ public class PlayerController {
 
     private var playerItemStatusObserver: NSKeyValueObservation?
 
-    weak var delegate: PlayerControllerDelegate?
+    public weak var delegate: PlayerControllerDelegate?
 
     deinit {
         if let millisecondTimeObserverToken = millisecondTimeObserverToken {
@@ -63,12 +63,12 @@ public class PlayerController {
     }
 }
 
-public extension PlayerController: PlayerControllerProtocol {
-    var isPlaying: Bool {
+extension PlayerController: PlayerControllerProtocol {
+    public var isPlaying: Bool {
         playerController?.player?.timeControlStatus == .playing
     }
 
-    func play(url: URL, rate: Double, position: Double, readyToPlay: @escaping (Result<Void, Error>) -> Void) {
+    public func play(url: URL, rate: Double, position: Double, readyToPlay: @escaping (Result<Void, Error>) -> Void) {
         // Pause current player if needed
         playerController?.player?.pause()
 
@@ -134,15 +134,15 @@ public extension PlayerController: PlayerControllerProtocol {
         })
     }
 
-    func pause() {
+    public func pause() {
         playerController?.player?.pause()
     }
 
-    func resume() {
+    public func resume() {
         playerController?.player?.play()
     }
 
-    func seek(to percentage: Double) {
+    public func seek(to percentage: Double) {
         guard let player = playerController?.player,
               let currentReplyDuration = player.currentItem?.duration.seconds,
               !currentReplyDuration.isNaN,
@@ -153,7 +153,7 @@ public extension PlayerController: PlayerControllerProtocol {
         player.seek(to: newTime, toleranceBefore: .zero, toleranceAfter: .zero)
     }
 
-    func rewind(seconds: Double) {
+    public func rewind(seconds: Double) {
         guard let player = playerController?.player else { return }
         let currentTime = player.currentTime()
         var newTime = currentTime - CMTime(seconds: seconds, preferredTimescale: 60000)
@@ -161,11 +161,11 @@ public extension PlayerController: PlayerControllerProtocol {
         player.seek(to: newTime, toleranceBefore: .zero, toleranceAfter: .zero)
     }
 
-    func getCurrentTimeInSeconds() -> Double? {
+    public func getCurrentTimeInSeconds() -> Double? {
         return playerController?.player?.currentTime().seconds
     }
 
-    func setPlaybackSpeed(_ playbackSpeed: Double) {
+    public func setPlaybackSpeed(_ playbackSpeed: Double) {
         let isPlaying = playerController?.player?.timeControlStatus == .playing
 
         if isPlaying {

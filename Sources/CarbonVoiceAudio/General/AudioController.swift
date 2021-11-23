@@ -30,7 +30,7 @@ public protocol AudioControllerDelegate: AnyObject {
 
 public class AudioController {
 
-    weak var delegate: AudioControllerDelegate?
+    public weak var delegate: AudioControllerDelegate?
 
     init() {
         setupNotifications()
@@ -131,8 +131,8 @@ public class AudioController {
 
 // MARK: - AudioControllerProtocol
 
-public extension AudioController: AudioControllerProtocol {
-    func setSessionCategory(_ category: String, completion: (Result<Void, Error>) -> Void) {
+extension AudioController: AudioControllerProtocol {
+    public func setSessionCategory(_ category: String, completion: (Result<Void, Error>) -> Void) {
         do {
             guard let category = getAudioSessionCategoryFromString(category) else {
                 let error = NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey : "Category does not exist"])
@@ -146,7 +146,7 @@ public extension AudioController: AudioControllerProtocol {
         }
     }
 
-    func setSessionActive(_ active: Bool, completion: (Result<Void, Error>) -> Void) {
+    public func setSessionActive(_ active: Bool, completion: (Result<Void, Error>) -> Void) {
         do {
             try AVAudioSession.sharedInstance().setActive(active)
             completion(.success(Void()))
@@ -155,11 +155,11 @@ public extension AudioController: AudioControllerProtocol {
         }
     }
 
-    func getCurrentSessionCategoryName() -> String? {
+    public func getCurrentSessionCategoryName() -> String? {
         return getAudioSessionCategoryName(AVAudioSession.sharedInstance().category)
     }
 
-    func getCurrentInput() -> AVAudioSessionPortDescription? {
+    public func getCurrentInput() -> AVAudioSessionPortDescription? {
         var currentInput: AVAudioSessionPortDescription?
 
         let inputs = AVAudioSession.sharedInstance().currentRoute.inputs
@@ -175,7 +175,7 @@ public extension AudioController: AudioControllerProtocol {
         return currentInput
     }
 
-    func getCurrentOutput() -> AVAudioSessionPortDescription? {
+    public func getCurrentOutput() -> AVAudioSessionPortDescription? {
         var currentOutput: AVAudioSessionPortDescription?
 
         let outputs = AVAudioSession.sharedInstance().currentRoute.outputs
@@ -194,7 +194,7 @@ public extension AudioController: AudioControllerProtocol {
 
 // MARK: - Helpers
 
-public extension AudioController {
+extension AudioController {
     private func getAllAudioPorts() -> [AVAudioSession.Port] {
         var allPorts: [AVAudioSession.Port] = [
             AVAudioSession.Port.lineIn,

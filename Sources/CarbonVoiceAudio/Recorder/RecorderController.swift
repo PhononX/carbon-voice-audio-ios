@@ -33,13 +33,13 @@ public protocol RecorderControllerDelegate: AnyObject {
 
 public class RecorderController {
 
-    struct AudioRecordingResult {
+    public struct AudioRecordingResult {
         let url: URL
         let transcription: String?
         let recordedTimeInMilliseconds: Int
     }
 
-    enum Error: Swift.Error, LocalizedError {
+    public enum Error: Swift.Error, LocalizedError {
         case deniedRecordPermissionRequest
         case failedToInstantiateAVAudioRecorder
 
@@ -67,7 +67,7 @@ public class RecorderController {
 
     private (set) var isSessionActive: Bool = false
 
-    weak var delegate: RecorderControllerDelegate?
+    public weak var delegate: RecorderControllerDelegate?
 
     private func startTimer() {
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true, block: { [weak self] _ in
@@ -87,18 +87,18 @@ public class RecorderController {
     }
 }
 
-public extension RecorderController: RecorderControllerProtocol {
-    var isRecording: Bool {
+extension RecorderController: RecorderControllerProtocol {
+    public var isRecording: Bool {
         audioRecorder?.isRecording == true
     }
 
-    func requestRecordPermission(completion: @escaping (Bool) -> Void) {
+    public func requestRecordPermission(completion: @escaping (Bool) -> Void) {
         AVAudioSession.sharedInstance().requestRecordPermission { granted in
             completion(granted)
         }
     }
 
-    func getRecordPermissionState() -> String {
+    public func getRecordPermissionState() -> String {
         switch AVAudioSession.sharedInstance().recordPermission {
         case .undetermined:
             return "undetermined"
@@ -111,7 +111,7 @@ public extension RecorderController: RecorderControllerProtocol {
         }
     }
 
-    func startRecordingSession() throws {
+    public func startRecordingSession() throws {
         guard AVAudioSession.sharedInstance().recordPermission == .granted else {
             throw Error.deniedRecordPermissionRequest
         }
@@ -129,7 +129,7 @@ public extension RecorderController: RecorderControllerProtocol {
         isSessionActive = true
     }
 
-    func resumeRecording() {
+    public func resumeRecording() {
         guard audioRecorder != nil else {
             return
         }
@@ -137,7 +137,7 @@ public extension RecorderController: RecorderControllerProtocol {
         audioRecorder?.record()
     }
 
-    func pauseRecording() {
+    public func pauseRecording() {
         guard audioRecorder != nil else {
             return
         }
@@ -145,7 +145,7 @@ public extension RecorderController: RecorderControllerProtocol {
         audioRecorder?.pause()
     }
 
-    func endRecordingSession(completion: @escaping (AudioRecordingResult?) -> Void) {
+    public func endRecordingSession(completion: @escaping (AudioRecordingResult?) -> Void) {
         guard audioRecorder != nil, let url = audioRecorder?.url else {
             completion(nil)
             return
@@ -176,7 +176,7 @@ public extension RecorderController: RecorderControllerProtocol {
         }
     }
 
-    func deleteRecordingSession() {
+    public func deleteRecordingSession() {
         guard audioRecorder != nil else {
             return
         }
