@@ -42,6 +42,7 @@ public class RecorderController {
     public enum Error: Swift.Error, LocalizedError {
         case deniedRecordPermissionRequest
         case failedToInstantiateAVAudioRecorder
+        case audioSessionIsAlreadyInProgress
 
         public var errorDescription: String? {
             switch self {
@@ -49,15 +50,11 @@ public class RecorderController {
                 return "Failed to find permission to access the microphone, go to settings and turn it on from there"
             case .failedToInstantiateAVAudioRecorder:
                 return "Failed to instantiate AVAudioRecorder"
+            case .audioSessionIsAlreadyInProgress:
+                return "End the current audio session before starting a new one"
             }
         }
     }
-
-    private let localURLToStoreAudioRecordings: URL = {
-        let documentsDirectory = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0]
-        let url = NSURL.fileURL(withPath: documentsDirectory).appendingPathComponent("audio_recording.wav")
-        return url
-    }()
 
     private var audioRecorder: AVAudioRecorder?
 
@@ -118,17 +115,26 @@ extension RecorderController: RecorderControllerProtocol {
             throw Error.deniedRecordPermissionRequest
         }
 
-        if audioRecorder == nil {
-            do {
-                self.audioRecorder = try AVAudioRecorder(url: localURLToStoreAudioRecordings, settings: [:])
-            } catch {
-                throw Error.failedToInstantiateAVAudioRecorder
-            }
+        guard isSessionActive == false, audioRecorder == nil else {
+            throw Error.audioSessionIsAlreadyInProgress
         }
 
-        startTimer()
-        audioRecorder?.record()
-        isSessionActive = true
+        do {
+            let audioFilename = getDocumentsDirectory().appendingPathComponent("recording.m4a")
+
+            let settings = [
+                AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
+                AVSampleRateKey: 12000,
+                AVNumberOfChannelsKey: 1,
+                AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
+            ]
+            audioRecorder = try AVAudioRecorder(url: audioFilename, settings: settings)
+            startTimer()
+            audioRecorder?.record()
+            isSessionActive = true
+        } catch {
+            throw Error.failedToInstantiateAVAudioRecorder
+        }
     }
 
     public func resumeRecording() {
@@ -192,5 +198,10 @@ extension RecorderController: RecorderControllerProtocol {
         audioRecorder?.deleteRecording()
 
         isSessionActive = false
+    }
+
+    private func getDocumentsDirectory() -> URL {
+        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+        return paths[0]
     }
 }
