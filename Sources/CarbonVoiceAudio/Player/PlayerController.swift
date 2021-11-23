@@ -9,7 +9,7 @@ import AVKit
 
 // MARK: - Input (methods)
 
-protocol PlayerControllerProtocol {
+public protocol PlayerControllerProtocol {
     var delegate: PlayerControllerDelegate? { get set }
     var isPlaying: Bool { get }
     func play(url: URL, rate: Double, position: Double, readyToPlay: @escaping (Result<Void, Error>) -> Void)
@@ -23,7 +23,7 @@ protocol PlayerControllerProtocol {
 
 // MARK: - Output (callbacks)
 
-protocol PlayerControllerDelegate: AnyObject {
+public protocol PlayerControllerDelegate: AnyObject {
     func timelineDidChange(timePlayed: String, timeRemaining: String, percentage: Double)
     func millisecondsHeardDidChange(milliseconds: Int, percentage: Double)
     func playerDidFinishPlaying()
@@ -31,7 +31,7 @@ protocol PlayerControllerDelegate: AnyObject {
 
 // MARK: - PlayerController
 
-class PlayerController {
+public class PlayerController {
     private var playerController: AVPlayerViewController?
 
     private var millisecondTimeObserverToken: Any?

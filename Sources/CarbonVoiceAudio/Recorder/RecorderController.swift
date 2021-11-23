@@ -10,7 +10,7 @@ import AVKit
 
 // MARK: - Input (methods)
 
-protocol RecorderControllerProtocol {
+public protocol RecorderControllerProtocol {
     var delegate: RecorderControllerDelegate? { get set }
     var isSessionActive: Bool { get }
     var isRecording: Bool { get }
@@ -25,13 +25,13 @@ protocol RecorderControllerProtocol {
 
 // MARK: - Output (callbacks)
 
-protocol RecorderControllerDelegate: AnyObject {
+public protocol RecorderControllerDelegate: AnyObject {
     func recordedTimeDidChange(secondsRecorded: Int)
 }
 
 // MARK: - RecorderController
 
-class RecorderController {
+public class RecorderController {
 
     struct AudioRecordingResult {
         let url: URL

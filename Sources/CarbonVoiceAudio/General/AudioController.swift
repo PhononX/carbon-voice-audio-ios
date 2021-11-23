@@ -9,7 +9,7 @@ import AVKit
 
 // MARK: - Input (methods)
 
-protocol AudioControllerProtocol {
+public protocol AudioControllerProtocol {
     var delegate: AudioControllerDelegate? { get set }
     func setSessionCategory(_ category: String, completion: (Result<Void, Error>) -> Void)
     func setSessionActive(_ active: Bool, completion: (Result<Void, Error>) -> Void)
@@ -20,7 +20,7 @@ protocol AudioControllerProtocol {
 
 // MARK: - Output (callbacks)
 
-protocol AudioControllerDelegate: AnyObject {
+public protocol AudioControllerDelegate: AnyObject {
     func routeDidChange(inputPortName: String?, inputPortType: String?, outputPortName: String?, outputPortType: String?)
     func interruptionStarted()
     func interruptionEnded()
@@ -28,7 +28,7 @@ protocol AudioControllerDelegate: AnyObject {
 
 // MARK: - AudioController
 
-class AudioController {
+public class AudioController {
 
     weak var delegate: AudioControllerDelegate?
 
