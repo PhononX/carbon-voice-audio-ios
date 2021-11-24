@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import UIKit
 import AVKit
 
 // MARK: - Input (methods)
@@ -13,6 +14,7 @@ public protocol AudioControllerProtocol {
     var delegate: AudioControllerDelegate? { get set }
     func setSessionCategory(_ category: String, completion: (Result<Void, Error>) -> Void)
     func setSessionActive(_ active: Bool, completion: (Result<Void, Error>) -> Void)
+    func showRoutePickerView()
     func getCurrentSessionCategoryName() -> String?
     func getCurrentInput() -> AVAudioSessionPortDescription?
     func getCurrentOutput() -> AVAudioSessionPortDescription?
@@ -190,6 +192,21 @@ extension AudioController: AudioControllerProtocol {
 
         return currentOutput
     }
+
+    public func showRoutePickerView() {
+        let routePickerView = AVRoutePickerView()
+        routePickerView.isHidden = true
+
+        if let topViewController = UIApplication.topViewController() {
+            // Add AVRoutePickerView
+            topViewController.view.addSubview(routePickerView)
+
+            // Trigger tap
+            if let routePickerButton = routePickerView.subviews.first(where: { $0 is UIButton }) as? UIButton {
+                routePickerButton.sendActions(for: .touchUpInside)
+            }
+        }
+    }
 }
 
 // MARK: - Helpers
@@ -277,5 +294,30 @@ extension AudioController {
         default:
             return nil
         }
+    }
+}
+
+fileprivate extension UIApplication {
+    class func topViewController(base: UIViewController? = UIApplication.shared.keyWindow?.rootViewController) -> UIViewController? {
+
+        if let nav = base as? UINavigationController {
+            return topViewController(base: nav.visibleViewController)
+        }
+
+        if let tab = base as? UITabBarController {
+            let moreNavigationController = tab.moreNavigationController
+
+            if let top = moreNavigationController.topViewController, top.view.window != nil {
+                return topViewController(base: top)
+            } else if let selected = tab.selectedViewController {
+                return topViewController(base: selected)
+            }
+        }
+
+        if let presented = base?.presentedViewController {
+            return topViewController(base: presented)
+        }
+
+        return base
     }
 }
