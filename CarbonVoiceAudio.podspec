@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'CarbonVoiceAudio'
-  s.version          = '1.0.0'
+  s.version          = '1.0.1'
   s.summary          = 'Audio library for CarbonVoice.'
 
   s.homepage         = 'https://github.com/PhononX/carbon-voice-audio-ios'
