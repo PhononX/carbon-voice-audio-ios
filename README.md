@@ -8,3 +8,4 @@ Update podspec with version and then run:
 - `git add -A && git commit -m "Release 0.0.1."`
 - `git tag '0.0.1'`
 - `git push --tags`
+- `pod trunk push CarbonVoiceAudio.podspec`
