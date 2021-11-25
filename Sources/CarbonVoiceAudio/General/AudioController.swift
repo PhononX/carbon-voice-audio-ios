@@ -14,6 +14,7 @@ public protocol AudioControllerProtocol {
     var delegate: AudioControllerDelegate? { get set }
     func setSessionCategory(_ category: String, completion: (Result<Void, Error>) -> Void)
     func setSessionActive(_ active: Bool, completion: (Result<Void, Error>) -> Void)
+    func setPrefersNoInterruptionsFromSystemAlerts()
     func showRoutePickerView()
     func getCurrentSessionCategoryName() -> String?
     func getCurrentInput() -> AVAudioSessionPortDescription?
@@ -204,6 +205,16 @@ extension AudioController: AudioControllerProtocol {
             // Trigger tap
             if let routePickerButton = routePickerView.subviews.first(where: { $0 is UIButton }) as? UIButton {
                 routePickerButton.sendActions(for: .touchUpInside)
+            }
+        }
+    }
+
+    public func setPrefersNoInterruptionsFromSystemAlerts() {
+        if #available(iOS 14.5, *) {
+            do {
+                try AVAudioSession.sharedInstance().setPrefersNoInterruptionsFromSystemAlerts(true)
+            } catch {
+                print(error.localizedDescription)
             }
         }
     }
