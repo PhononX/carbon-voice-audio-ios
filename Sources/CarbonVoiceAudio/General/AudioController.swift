@@ -12,9 +12,7 @@ import AVKit
 
 public protocol AudioControllerProtocol {
     var delegate: AudioControllerDelegate? { get set }
-    func setSessionCategory(_ category: String, completion: (Result<Void, Error>) -> Void)
-    func setSessionActive(_ active: Bool, completion: (Result<Void, Error>) -> Void)
-    func setPrefersNoInterruptionsFromSystemAlerts(_ inValue: Bool, completion: (Result<Void, Error>) -> Void)
+    func initializeAudioController() -> Result<Void, Error>
     func showRoutePickerView()
     func getCurrentSessionCategoryName() -> String?
     func getCurrentInput() -> AVAudioSessionPortDescription?
@@ -135,40 +133,13 @@ public class AudioController {
 // MARK: - AudioControllerProtocol
 
 extension AudioController: AudioControllerProtocol {
-    public func setSessionCategory(_ category: String, completion: (Result<Void, Error>) -> Void) {
+    public func initializeAudioController() -> Result<Void, Error> {
         do {
-            guard let category = getAudioSessionCategoryFromString(category) else {
-                let error = NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey : "Category does not exist"])
-                completion(.failure(error))
-                return
-            }
-            try AVAudioSession.sharedInstance().setCategory(category)
-            completion(.success(Void()))
+            try AVAudioSession.sharedInstance().setCategory(.playAndRecord, mode: .voiceChat, policy: .default, options: .interruptSpokenAudioAndMixWithOthers)
+            try AVAudioSession.sharedInstance().setActive(true)
+            return .success(Void())
         } catch {
-            completion(.failure(error))
-        }
-    }
-
-    public func setSessionActive(_ active: Bool, completion: (Result<Void, Error>) -> Void) {
-        do {
-            try AVAudioSession.sharedInstance().setActive(active)
-            completion(.success(Void()))
-        } catch {
-            completion(.failure(error))
-        }
-    }
-
-    public func setPrefersNoInterruptionsFromSystemAlerts(_ inValue: Bool, completion: (Result<Void, Error>) -> Void) {
-        if #available(iOS 14.5, *) {
-            do {
-                try AVAudioSession.sharedInstance().setPrefersNoInterruptionsFromSystemAlerts(inValue)
-                completion(.success(Void()))
-            } catch {
-                completion(.failure(error))
-            }
-        } else {
-            let error = NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey : "iOS version needs to be at least 14.5 or greater"])
-            completion(.failure(error))
+            return .failure(error)
         }
     }
 

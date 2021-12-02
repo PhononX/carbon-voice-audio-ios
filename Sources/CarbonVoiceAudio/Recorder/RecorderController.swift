@@ -84,6 +84,16 @@ public class RecorderController {
         timer?.invalidate()
         timer = nil
     }
+
+    private func setPrefersNoInterruptionsFromSystemAlerts(_ inValue: Bool) {
+        if #available(iOS 14.5, *) {
+            do {
+                try AVAudioSession.sharedInstance().setPrefersNoInterruptionsFromSystemAlerts(inValue)
+            } catch {
+                print("Failed to call setPrefersNoInterruptionsFromSystemAlerts, error: ", error.localizedDescription)
+            }
+        }
+    }
 }
 
 extension RecorderController: RecorderControllerProtocol {
@@ -130,8 +140,9 @@ extension RecorderController: RecorderControllerProtocol {
             ]
             audioRecorder = try AVAudioRecorder(url: audioFilename, settings: settings)
             startTimer()
-            audioRecorder?.record()
             isSessionActive = true
+            setPrefersNoInterruptionsFromSystemAlerts(true)
+            audioRecorder?.record()
         } catch {
             throw Error.failedToInstantiateAVAudioRecorder
         }
@@ -170,6 +181,8 @@ extension RecorderController: RecorderControllerProtocol {
 
         isSessionActive = false
 
+        setPrefersNoInterruptionsFromSystemAlerts(false)
+
         let recognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))
         let request = SFSpeechURLRecognitionRequest(url: url)
         request.shouldReportPartialResults = true
@@ -198,6 +211,8 @@ extension RecorderController: RecorderControllerProtocol {
         audioRecorder?.deleteRecording()
 
         isSessionActive = false
+
+        setPrefersNoInterruptionsFromSystemAlerts(false)
     }
 
     private func getDocumentsDirectory() -> URL {
