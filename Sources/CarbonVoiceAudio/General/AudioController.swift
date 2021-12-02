@@ -12,7 +12,6 @@ import AVKit
 
 public protocol AudioControllerProtocol {
     var delegate: AudioControllerDelegate? { get set }
-    func initializeAudioController() -> Result<Void, Error>
     func showRoutePickerView()
     func getCurrentSessionCategoryName() -> String?
     func getCurrentInput() -> AVAudioSessionPortDescription?
@@ -133,16 +132,6 @@ public class AudioController {
 // MARK: - AudioControllerProtocol
 
 extension AudioController: AudioControllerProtocol {
-    public func initializeAudioController() -> Result<Void, Error> {
-        do {
-            try AVAudioSession.sharedInstance().setCategory(.defaultToSpeaker, mode: .voiceChat, policy: .default, options: .interruptSpokenAudioAndMixWithOthers)
-            try AVAudioSession.sharedInstance().setActive(true)
-            return .success(Void())
-        } catch {
-            return .failure(error)
-        }
-    }
-
     public func getCurrentSessionCategoryName() -> String? {
         return getAudioSessionCategoryName(AVAudioSession.sharedInstance().category)
     }

@@ -41,15 +41,12 @@ public class RecorderController {
 
     public enum Error: Swift.Error, LocalizedError {
         case deniedRecordPermissionRequest
-        case failedToInstantiateAVAudioRecorder
         case audioSessionIsAlreadyInProgress
 
         public var errorDescription: String? {
             switch self {
             case .deniedRecordPermissionRequest:
                 return "Failed to find permission to access the microphone, go to settings and turn it on from there"
-            case .failedToInstantiateAVAudioRecorder:
-                return "Failed to instantiate AVAudioRecorder"
             case .audioSessionIsAlreadyInProgress:
                 return "End the current audio session before starting a new one"
             }
@@ -129,23 +126,25 @@ extension RecorderController: RecorderControllerProtocol {
             throw Error.audioSessionIsAlreadyInProgress
         }
 
-        do {
-            let audioFilename = getDocumentsDirectory().appendingPathComponent("recording.m4a")
-
-            let settings = [
-                AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
-                AVSampleRateKey: 12000,
-                AVNumberOfChannelsKey: 1,
-                AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
-            ]
-            audioRecorder = try AVAudioRecorder(url: audioFilename, settings: settings)
-            startTimer()
-            isSessionActive = true
-            setPrefersNoInterruptionsFromSystemAlerts(true)
-            audioRecorder?.record()
-        } catch {
-            throw Error.failedToInstantiateAVAudioRecorder
+        if AVAudioSession.sharedInstance().category != .record ||
+            AVAudioSession.sharedInstance().categoryOptions != .interruptSpokenAudioAndMixWithOthers {
+            try AVAudioSession.sharedInstance().setCategory(.record, options: .interruptSpokenAudioAndMixWithOthers)
+            try AVAudioSession.sharedInstance().setActive(true)
         }
+
+        let audioFilename = getDocumentsDirectory().appendingPathComponent("recording.m4a")
+
+        let settings = [
+            AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
+            AVSampleRateKey: 12000,
+            AVNumberOfChannelsKey: 1,
+            AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
+        ]
+        audioRecorder = try AVAudioRecorder(url: audioFilename, settings: settings)
+        startTimer()
+        isSessionActive = true
+        setPrefersNoInterruptionsFromSystemAlerts(true)
+        audioRecorder?.record()
     }
 
     public func resumeRecording() {

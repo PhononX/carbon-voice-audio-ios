@@ -9,18 +9,6 @@ final class CarbonVoiceAudioTests: XCTestCase {
 
     let recorderController: RecorderControllerProtocol = RecorderController()
 
-    func testInitializeAudio() throws {
-        var errorResult: Error?
-        let result = audioController.initializeAudioController()
-        switch result {
-        case .success:
-            errorResult = nil
-        case .failure(let error):
-            errorResult = error
-        }
-        XCTAssertNil(errorResult)
-    }
-
     func testCurrentCategoryName() throws {
         let result = audioController.getCurrentSessionCategoryName()
         XCTAssertNotNil(result)
