@@ -13,6 +13,7 @@ import AVKit
 public protocol AudioControllerProtocol {
     var delegate: AudioControllerDelegate? { get set }
     func showRoutePickerView()
+    func setPrefersNoInterruptionsFromSystemAlerts(_ inValue: Bool)
     func getCurrentSessionCategoryName() -> String?
     func getCurrentInput() -> AVAudioSessionPortDescription?
     func getCurrentOutput() -> AVAudioSessionPortDescription?
@@ -132,6 +133,16 @@ public class AudioController {
 // MARK: - AudioControllerProtocol
 
 extension AudioController: AudioControllerProtocol {
+    public func setPrefersNoInterruptionsFromSystemAlerts(_ inValue: Bool) {
+        if #available(iOS 14.5, *) {
+            do {
+                try AVAudioSession.sharedInstance().setPrefersNoInterruptionsFromSystemAlerts(inValue)
+            } catch {
+                print("Failed to call setPrefersNoInterruptionsFromSystemAlerts, error: ", error.localizedDescription)
+            }
+        }
+    }
+
     public func getCurrentSessionCategoryName() -> String? {
         return getAudioSessionCategoryName(AVAudioSession.sharedInstance().category)
     }
