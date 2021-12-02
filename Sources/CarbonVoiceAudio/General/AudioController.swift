@@ -135,7 +135,7 @@ public class AudioController {
 extension AudioController: AudioControllerProtocol {
     public func initializeAudioController() -> Result<Void, Error> {
         do {
-            try AVAudioSession.sharedInstance().setCategory(.playAndRecord, mode: .voiceChat, policy: .default, options: .interruptSpokenAudioAndMixWithOthers)
+            try AVAudioSession.sharedInstance().setCategory(.defaultToSpeaker, mode: .voiceChat, policy: .default, options: .interruptSpokenAudioAndMixWithOthers)
             try AVAudioSession.sharedInstance().setActive(true)
             return .success(Void())
         } catch {
