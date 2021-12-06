@@ -55,6 +55,10 @@ public class RecorderController {
 
     public weak var delegate: RecorderControllerDelegate?
 
+    deinit {
+        invalidateTimer()
+    }
+
     public init() {}
 
     private func startTimer() {
@@ -133,8 +137,9 @@ extension RecorderController: RecorderControllerProtocol {
 
         if audioRecorder == nil {
             audioRecorder = try AVAudioRecorder(url: audioFilename, settings: settings)
-            startTimer()
         }
+
+        startTimer()
         setPrefersNoInterruptionsFromSystemAlerts(true)
         audioRecorder?.record()
     }
