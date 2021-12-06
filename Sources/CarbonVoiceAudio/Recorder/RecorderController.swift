@@ -18,7 +18,6 @@ public protocol RecorderControllerProtocol {
     func startOrResumeRecording() throws
     func pauseRecording()
     func endRecordingSession(completion: @escaping (RecorderController.AudioRecordingResult?) -> Void)
-    func deleteRecordingSession()
 }
 
 // MARK: - Output (callbacks)
@@ -59,6 +58,8 @@ public class RecorderController {
     public init() {}
 
     private func startTimer() {
+        invalidateTimer()
+        
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true, block: { [weak self] _ in
             guard let self = self else { return }
             if self.audioRecorder?.isRecording == true {
@@ -167,30 +168,16 @@ extension RecorderController: RecorderControllerProtocol {
         let request = SFSpeechURLRecognitionRequest(url: url)
         request.shouldReportPartialResults = true
         if recognizer?.isAvailable == true {
-            recognizer?.recognitionTask(with: request) { result, _ in
+            recognizer?.recognitionTask(with: request) { [weak self] result, _ in
                 let transcription = result?.bestTranscription.formattedString
                 completion(AudioRecordingResult(url: url, transcription: transcription, recordedTimeInMilliseconds: recordedTimeInMilliseconds))
+                self?.audioRecorder = nil
             }
         } else {
             print("Device doesn't support speech recognition")
             completion(AudioRecordingResult(url: url, transcription: nil, recordedTimeInMilliseconds: recordedTimeInMilliseconds))
+            audioRecorder = nil
         }
-    }
-
-    public func deleteRecordingSession() {
-        guard audioRecorder != nil else {
-            return
-        }
-
-        invalidateTimer()
-
-        recordedTimeInSeconds = 0
-        delegate?.recordedTimeDidChange(secondsRecorded: recordedTimeInSeconds)
-
-        audioRecorder?.stop()
-        audioRecorder?.deleteRecording()
-
-        setPrefersNoInterruptionsFromSystemAlerts(false)
     }
 
     private func getDocumentsDirectory() -> URL {
