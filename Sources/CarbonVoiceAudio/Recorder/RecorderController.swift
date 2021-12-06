@@ -12,13 +12,11 @@ import AVKit
 
 public protocol RecorderControllerProtocol {
     var delegate: RecorderControllerDelegate? { get set }
-    var isSessionActive: Bool { get }
     var isRecording: Bool { get }
     func requestRecordPermission(completion: @escaping (Bool) -> Void)
     func getRecordPermissionState() -> String
-    func startRecordingSession() throws
+    func startOrResumeRecording() throws
     func pauseRecording()
-    func resumeRecording()
     func endRecordingSession(completion: @escaping (RecorderController.AudioRecordingResult?) -> Void)
     func deleteRecordingSession()
 }
@@ -41,14 +39,11 @@ public class RecorderController {
 
     public enum Error: Swift.Error, LocalizedError {
         case deniedRecordPermissionRequest
-        case audioSessionIsAlreadyInProgress
 
         public var errorDescription: String? {
             switch self {
             case .deniedRecordPermissionRequest:
                 return "Failed to find permission to access the microphone, go to settings and turn it on from there"
-            case .audioSessionIsAlreadyInProgress:
-                return "End the current audio session before starting a new one"
             }
         }
     }
@@ -58,8 +53,6 @@ public class RecorderController {
     private var recordedTimeInSeconds: Int = 0
 
     private var timer: Timer?
-
-    public var isSessionActive: Bool = false
 
     public weak var delegate: RecorderControllerDelegate?
 
@@ -117,13 +110,9 @@ extension RecorderController: RecorderControllerProtocol {
         }
     }
 
-    public func startRecordingSession() throws {
+    public func startOrResumeRecording() throws {
         guard AVAudioSession.sharedInstance().recordPermission == .granted else {
             throw Error.deniedRecordPermissionRequest
-        }
-
-        guard isSessionActive == false, audioRecorder == nil else {
-            throw Error.audioSessionIsAlreadyInProgress
         }
 
         if AVAudioSession.sharedInstance().category != .record ||
@@ -140,18 +129,12 @@ extension RecorderController: RecorderControllerProtocol {
             AVNumberOfChannelsKey: 1,
             AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
         ]
-        audioRecorder = try AVAudioRecorder(url: audioFilename, settings: settings)
-        startTimer()
-        isSessionActive = true
-        setPrefersNoInterruptionsFromSystemAlerts(true)
-        audioRecorder?.record()
-    }
 
-    public func resumeRecording() {
-        guard audioRecorder != nil else {
-            return
+        if audioRecorder == nil {
+            audioRecorder = try AVAudioRecorder(url: audioFilename, settings: settings)
+            startTimer()
         }
-
+        setPrefersNoInterruptionsFromSystemAlerts(true)
         audioRecorder?.record()
     }
 
@@ -177,8 +160,6 @@ extension RecorderController: RecorderControllerProtocol {
         delegate?.recordedTimeDidChange(secondsRecorded: recordedTimeInSeconds)
 
         audioRecorder?.stop()
-
-        isSessionActive = false
 
         setPrefersNoInterruptionsFromSystemAlerts(false)
 
@@ -208,8 +189,6 @@ extension RecorderController: RecorderControllerProtocol {
 
         audioRecorder?.stop()
         audioRecorder?.deleteRecording()
-
-        isSessionActive = false
 
         setPrefersNoInterruptionsFromSystemAlerts(false)
     }

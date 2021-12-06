@@ -7,8 +7,6 @@ final class CarbonVoiceAudioTests: XCTestCase {
 
     let playerController: PlayerControllerProtocol = PlayerController()
 
-    let recorderController: RecorderControllerProtocol = RecorderController()
-
     func testCurrentCategoryName() throws {
         let result = audioController.getCurrentSessionCategoryName()
         XCTAssertNotNil(result)
