@@ -53,6 +53,12 @@ public class RecorderController {
 
     private var timer: Timer?
 
+    private lazy var speechRecognizer: SFSpeechRecognizer? = {
+        let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))
+//        speechRecognizer.delegate = self
+        return speechRecognizer
+    }()
+
     public weak var delegate: RecorderControllerDelegate?
 
     deinit {
@@ -169,13 +175,27 @@ extension RecorderController: RecorderControllerProtocol {
 
         setPrefersNoInterruptionsFromSystemAlerts(false)
 
-        let recognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))
         let request = SFSpeechURLRecognitionRequest(url: url)
-        request.shouldReportPartialResults = true
-        if recognizer?.isAvailable == true {
-            recognizer?.recognitionTask(with: request) { [weak self] result, _ in
-                let transcription = result?.bestTranscription.formattedString
-                completion(AudioRecordingResult(url: url, transcription: transcription, recordedTimeInMilliseconds: recordedTimeInMilliseconds))
+        request.shouldReportPartialResults = false
+
+        if speechRecognizer?.isAvailable == true {
+            speechRecognizer?.recognitionTask(with: request) { [weak self] result, error in
+                if let error = error {
+                    print("Speech recognition task failed, error: \(error.localizedDescription)")
+                    completion(AudioRecordingResult(url: url,
+                                                    transcription: nil,
+                                                    recordedTimeInMilliseconds: recordedTimeInMilliseconds))
+                } else if let transcription = result?.bestTranscription.formattedString {
+                    print("Speech recognition task succeeded, transcription: \(transcription)")
+                    completion(AudioRecordingResult(url: url,
+                                                    transcription: transcription,
+                                                    recordedTimeInMilliseconds: recordedTimeInMilliseconds))
+                } else {
+                    print("Speech recognition failed without an error")
+                    completion(AudioRecordingResult(url: url,
+                                                    transcription: nil,
+                                                    recordedTimeInMilliseconds: recordedTimeInMilliseconds))
+                }
                 self?.audioRecorder = nil
             }
         } else {
