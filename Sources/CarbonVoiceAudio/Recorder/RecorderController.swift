@@ -5,8 +5,11 @@
 //
 
 import Foundation
-import Speech
 import AVKit
+
+#if canImport(Speech)
+import Speech
+#endif
 
 // MARK: - Input (methods)
 
@@ -53,11 +56,12 @@ public class RecorderController {
 
     private var timer: Timer?
 
+    #if canImport(Speech)
     private lazy var speechRecognizer: SFSpeechRecognizer? = {
         let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))
-//        speechRecognizer.delegate = self
         return speechRecognizer
     }()
+    #endif
 
     public weak var delegate: RecorderControllerDelegate?
 
@@ -178,6 +182,8 @@ extension RecorderController: RecorderControllerProtocol {
         let request = SFSpeechURLRecognitionRequest(url: url)
         request.shouldReportPartialResults = false
 
+
+        #if canImport(Speech)
         if speechRecognizer?.isAvailable == true {
             speechRecognizer?.recognitionTask(with: request) { [weak self] result, error in
                 if let error = error {
@@ -203,6 +209,12 @@ extension RecorderController: RecorderControllerProtocol {
             completion(AudioRecordingResult(url: url, transcription: nil, recordedTimeInMilliseconds: recordedTimeInMilliseconds))
             audioRecorder = nil
         }
+
+        #else
+        completion(AudioRecordingResult(url: url, transcription: nil, recordedTimeInMilliseconds: recordedTimeInMilliseconds))
+        audioRecorder = nil
+
+        #endif
     }
 
     private func getDocumentsDirectory() -> URL {
