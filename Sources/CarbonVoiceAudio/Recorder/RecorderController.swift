@@ -179,11 +179,11 @@ extension RecorderController: RecorderControllerProtocol {
 
         setPrefersNoInterruptionsFromSystemAlerts(false)
 
+        #if canImport(Speech)
+
         let request = SFSpeechURLRecognitionRequest(url: url)
         request.shouldReportPartialResults = false
 
-
-        #if canImport(Speech)
         if speechRecognizer?.isAvailable == true {
             speechRecognizer?.recognitionTask(with: request) { [weak self] result, error in
                 if let error = error {
