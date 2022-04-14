@@ -6,7 +6,12 @@
 
 import Foundation
 import UIKit
+#if os(watchOS)
+import AVFoundation
+#else
 import AVKit
+#endif
+
 
 // MARK: - Input (methods)
 
@@ -135,10 +140,12 @@ public class AudioController {
 extension AudioController: AudioControllerProtocol {
     public func setPrefersNoInterruptionsFromSystemAlerts(_ inValue: Bool) {
         if #available(iOS 14.5, *) {
-            do {
-                try AVAudioSession.sharedInstance().setPrefersNoInterruptionsFromSystemAlerts(inValue)
-            } catch {
-                print("Failed to call setPrefersNoInterruptionsFromSystemAlerts, error: ", error.localizedDescription)
+            if #available(watchOS 7.3, *) {
+                do {
+                    try AVAudioSession.sharedInstance().setPrefersNoInterruptionsFromSystemAlerts(inValue)
+                } catch {
+                    print("Failed to call setPrefersNoInterruptionsFromSystemAlerts, error: ", error.localizedDescription)
+                }
             }
         }
     }
@@ -180,6 +187,8 @@ extension AudioController: AudioControllerProtocol {
     }
 
     public func showRoutePickerView() {
+        #if os(watchOS)
+        #else
         let routePickerView = AVRoutePickerView()
         routePickerView.isHidden = true
 
@@ -192,6 +201,7 @@ extension AudioController: AudioControllerProtocol {
                 routePickerButton.sendActions(for: .touchUpInside)
             }
         }
+        #endif
     }
 }
 
@@ -218,13 +228,15 @@ extension AudioController {
         ]
 
         if #available(iOS 14.0, *) {
-            allPorts.append(contentsOf: [
-                AVAudioSession.Port.PCI,
-                AVAudioSession.Port.fireWire,
-                AVAudioSession.Port.displayPort,
-                AVAudioSession.Port.AVB,
-                AVAudioSession.Port.thunderbolt
-            ])
+            if #available(watchOS 7.0, *) {
+                allPorts.append(contentsOf: [
+                    AVAudioSession.Port.PCI,
+                    AVAudioSession.Port.fireWire,
+                    AVAudioSession.Port.displayPort,
+                    AVAudioSession.Port.AVB,
+                    AVAudioSession.Port.thunderbolt
+                ])
+            }
         }
 
         return allPorts
@@ -283,6 +295,8 @@ extension AudioController {
     }
 }
 
+#if os(watchOS)
+#else
 fileprivate extension UIApplication {
     class func topViewController(base: UIViewController? = UIApplication.shared.keyWindow?.rootViewController) -> UIViewController? {
 
@@ -307,3 +321,4 @@ fileprivate extension UIApplication {
         return base
     }
 }
+#endif

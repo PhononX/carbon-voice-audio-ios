@@ -1,6 +1,7 @@
 import XCTest
 @testable import CarbonVoiceAudio
 
+@available(watchOS 7.3, *)
 final class CarbonVoiceAudioTests: XCTestCase {
 
     let audioController: AudioControllerProtocol = AudioController()

@@ -6,6 +6,7 @@
 
 import Foundation
 import AVKit
+import AVFoundation
 
 #if canImport(Speech)
 import Speech
@@ -13,6 +14,7 @@ import Speech
 
 // MARK: - Input (methods)
 
+@available(watchOS 7.3, *)
 public protocol RecorderControllerProtocol {
     var delegate: RecorderControllerDelegate? { get set }
     var isRecording: Bool { get }
@@ -31,6 +33,7 @@ public protocol RecorderControllerDelegate: AnyObject {
 
 // MARK: - RecorderController
 
+@available(watchOS 7.3, *)
 public class RecorderController {
 
     public struct AudioRecordingResult {
@@ -101,6 +104,7 @@ public class RecorderController {
     }
 }
 
+@available(watchOS 7.3, *)
 extension RecorderController: RecorderControllerProtocol {
     public var isRecording: Bool {
         audioRecorder?.isRecording == true

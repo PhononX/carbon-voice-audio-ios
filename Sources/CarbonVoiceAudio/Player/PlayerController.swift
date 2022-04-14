@@ -5,10 +5,12 @@
 //
 
 import Foundation
+import AVFoundation
 import AVKit
 
 // MARK: - Input (methods)
 
+@available(watchOS 7.3, *)
 public protocol PlayerControllerProtocol {
     var delegate: PlayerControllerDelegate? { get set }
     var isPlaying: Bool { get }
@@ -23,6 +25,7 @@ public protocol PlayerControllerProtocol {
 
 // MARK: - Output (callbacks)
 
+@available(watchOS 7.3, *)
 public protocol PlayerControllerDelegate: AnyObject {
     func timelineDidChange(timePlayed: String, timeRemaining: String, percentage: Double)
     func millisecondsHeardDidChange(milliseconds: Int, percentage: Double)
@@ -31,8 +34,10 @@ public protocol PlayerControllerDelegate: AnyObject {
 
 // MARK: - PlayerController
 
+@available(watchOS 7.3, *)
 public class PlayerController {
-    private var playerController: AVPlayerViewController?
+
+    private var avPlayer: AVPlayer?
 
     private var millisecondTimeObserverToken: Any?
 
@@ -46,14 +51,14 @@ public class PlayerController {
 
     deinit {
         if let millisecondTimeObserverToken = millisecondTimeObserverToken {
-            if let player = playerController?.player {
+            if let player = avPlayer {
                 player.removeTimeObserver(millisecondTimeObserverToken)
             }
             self.millisecondTimeObserverToken = nil
         }
 
         if let secondTimeObserverToken = fiveSecondTimeObserverToken {
-            if let player = playerController?.player {
+            if let player = avPlayer {
                 player.removeTimeObserver(secondTimeObserverToken)
             }
             self.fiveSecondTimeObserverToken = nil
@@ -65,9 +70,10 @@ public class PlayerController {
     }
 }
 
+@available(watchOS 7.3, *)
 extension PlayerController: PlayerControllerProtocol {
     public var isPlaying: Bool {
-        playerController?.player?.timeControlStatus == .playing
+        avPlayer?.timeControlStatus == .playing
     }
 
     public func play(url: URL, rate: Double, position: Double, readyToPlay: @escaping (Result<Void, Error>) -> Void) {
@@ -81,12 +87,9 @@ extension PlayerController: PlayerControllerProtocol {
             }
         }
 
-        // Pause current player if needed
-        playerController?.player?.pause()
+        avPlayer?.pause()
 
-        // Set new player
-        playerController = AVPlayerViewController()
-        playerController?.player = AVPlayer(url: url)
+        avPlayer = AVPlayer(url: url)
 
         // Remove old notification observer
         NotificationCenter.default.removeObserver(self,
@@ -101,9 +104,9 @@ extension PlayerController: PlayerControllerProtocol {
 
         // Handle millisecond(Time) UI Updates like the timeline (slider)
         let millisecond = CMTime(seconds: 0.1, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
-        millisecondTimeObserverToken = playerController?.player?.addPeriodicTimeObserver(forInterval: millisecond, queue: .main) { [weak self] time in
+        millisecondTimeObserverToken = avPlayer?.addPeriodicTimeObserver(forInterval: millisecond, queue: .main) { [weak self] time in
             guard let self = self,
-                  let player = self.playerController?.player,
+                  let player = self.avPlayer,
                   let item = player.currentItem
             else { return }
 
@@ -118,9 +121,9 @@ extension PlayerController: PlayerControllerProtocol {
 
         // Handle five seconds(Time) UI Updates like the "updateHeard" API call
         let fiveSeconds = CMTime(seconds: 5, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
-        fiveSecondTimeObserverToken = playerController?.player?.addPeriodicTimeObserver(forInterval: fiveSeconds, queue: .main) { [weak self] time in
+        fiveSecondTimeObserverToken = avPlayer?.addPeriodicTimeObserver(forInterval: fiveSeconds, queue: .main) { [weak self] time in
             guard let self = self,
-                  let player = self.playerController?.player,
+                  let player = self.avPlayer,
                   player.timeControlStatus == .playing,
                   let item = player.currentItem
             else { return }
@@ -135,27 +138,26 @@ extension PlayerController: PlayerControllerProtocol {
         }
 
         // Register as an observer of the player item's status property
-        self.playerItemStatusObserver = playerController?.player?.currentItem?.observe(\.status, options:  [.new, .old], changeHandler: { [weak self] (playerItem, change) in
+        self.playerItemStatusObserver = avPlayer?.currentItem?.observe(\.status, options:  [.new, .old], changeHandler: { [weak self] (playerItem, change) in
             guard let self = self else { return }
             if playerItem.status == .readyToPlay {
                 self.seek(to: position)
-                self.playerController?.player?.play()
-                self.playerController?.player?.rate = Float(rate)
+                self.avPlayer?.playImmediately(atRate: Float(rate))
                 readyToPlay(.success(Void()))
             }
         })
     }
 
     public func pause() {
-        playerController?.player?.pause()
+        avPlayer?.pause()
     }
 
     public func resume() {
-        playerController?.player?.play()
+        avPlayer?.play()
     }
 
     public func seek(to percentage: Double) {
-        guard let player = playerController?.player,
+        guard let player = avPlayer,
               let currentReplyDuration = player.currentItem?.duration.seconds,
               !currentReplyDuration.isNaN,
               !currentReplyDuration.isInfinite
@@ -166,7 +168,7 @@ extension PlayerController: PlayerControllerProtocol {
     }
 
     public func rewind(seconds: Double) {
-        guard let player = playerController?.player else { return }
+        guard let player = avPlayer else { return }
         let currentTime = player.currentTime()
         var newTime = currentTime - CMTime(seconds: seconds, preferredTimescale: 60000)
         if (newTime < CMTime.zero) { newTime = CMTime.zero }
@@ -174,24 +176,24 @@ extension PlayerController: PlayerControllerProtocol {
     }
 
     public func getCurrentTimeInSeconds() -> Double? {
-        return playerController?.player?.currentTime().seconds
+        return avPlayer?.currentTime().seconds
     }
 
     public func setPlaybackSpeed(_ playbackSpeed: Double) {
-        let isPlaying = playerController?.player?.timeControlStatus == .playing
+        let isPlaying = avPlayer?.timeControlStatus == .playing
 
         if isPlaying {
-            playerController?.player?.play()
-            playerController?.player?.rate = Float(playbackSpeed)
+            avPlayer?.play()
+            avPlayer?.rate = Float(playbackSpeed)
         } else {
-            playerController?.player?.rate = Float(playbackSpeed)
-            playerController?.player?.pause()
+            avPlayer?.rate = Float(playbackSpeed)
+            avPlayer?.pause()
         }
     }
 }
 
 // MARK: - CMTime helper
-
+@available(watchOS 7.3, *)
 fileprivate extension CMTime {
     private var roundedSeconds: TimeInterval {
         return seconds.rounded()
