@@ -77,16 +77,27 @@ extension PlayerController: PlayerControllerProtocol {
     }
 
     public func play(url: URL, rate: Double, position: Double, readyToPlay: @escaping (Result<Void, Error>) -> Void) {
+        #if os(watchOS)
         if AVAudioSession.sharedInstance().category != .playback ||
             AVAudioSession.sharedInstance().routeSharingPolicy != .longFormAudio ||
             AVAudioSession.sharedInstance().categoryOptions != .interruptSpokenAudioAndMixWithOthers {
             do {
                 try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, policy: .longFormAudio, options: .interruptSpokenAudioAndMixWithOthers)
+            } catch {
+                readyToPlay(.failure(error))
+            }
+        }
+        #else
+        if AVAudioSession.sharedInstance().category != .playback ||
+            AVAudioSession.sharedInstance().categoryOptions != .interruptSpokenAudioAndMixWithOthers {
+            do {
+                try AVAudioSession.sharedInstance().setCategory(.playback, options: .interruptSpokenAudioAndMixWithOthers)
                 try AVAudioSession.sharedInstance().setActive(true)
             } catch {
                 readyToPlay(.failure(error))
             }
         }
+        #endif
 
         avPlayer?.pause()
 
