@@ -23,12 +23,14 @@ public protocol RecorderControllerProtocol {
     func startOrResumeRecording() throws
     func pauseRecording()
     func endRecordingSession(completion: @escaping (RecorderController.AudioRecordingResult?) -> Void)
+    func setSubscriptionFrequency(seconds: Int)
 }
 
 // MARK: - Output (callbacks)
 
 public protocol RecorderControllerDelegate: AnyObject {
     func recordedTimeDidChange(secondsRecorded: Int)
+    func recordingInfoUpdate(decibels: Float?, duration: Int)
 }
 
 // MARK: - RecorderController
@@ -59,6 +61,8 @@ public class RecorderController {
 
     private var timer: Timer?
 
+    private var customTimer: Timer?
+
     #if canImport(Speech)
     private lazy var speechRecognizer: SFSpeechRecognizer? = {
         let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))
@@ -70,6 +74,9 @@ public class RecorderController {
 
     deinit {
         invalidateTimer()
+
+        customTimer?.invalidate()
+        customTimer = nil
     }
 
     public init() {}
@@ -91,6 +98,19 @@ public class RecorderController {
     private func invalidateTimer() {
         timer?.invalidate()
         timer = nil
+    }
+
+    public func setSubscriptionFrequency(seconds: Int) {
+        customTimer?.invalidate()
+        customTimer = nil
+
+        customTimer = Timer.scheduledTimer(withTimeInterval: Double(seconds), repeats: true, block: { [weak self] _ in
+            guard let self = self else { return }
+            let decibels = self.audioRecorder?.averagePower(forChannel: 0)
+            self.delegate?.recordingInfoUpdate(decibels: decibels, duration: self.recordedTimeInSeconds)
+        })
+
+        customTimer?.fire()
     }
 
     private func setPrefersNoInterruptionsFromSystemAlerts(_ inValue: Bool) {
@@ -156,6 +176,8 @@ extension RecorderController: RecorderControllerProtocol {
         startTimer()
         setPrefersNoInterruptionsFromSystemAlerts(true)
         audioRecorder?.record()
+        audioRecorder?.isMeteringEnabled = true
+        audioRecorder?.updateMeters()
     }
 
     public func pauseRecording() {

@@ -14,6 +14,7 @@ import AVKit
 public protocol PlayerControllerProtocol {
     var delegate: PlayerControllerDelegate? { get set }
     var isPlaying: Bool { get }
+    var playerInfo: PlayerInfo { get }
     func play(url: URL, rate: Double, position: Double, readyToPlay: @escaping (Result<Void, Error>) -> Void)
     func pause()
     func resume()
@@ -21,6 +22,7 @@ public protocol PlayerControllerProtocol {
     func rewind(seconds: Double)
     func setPlaybackSpeed(_ playbackSpeed: Double)
     func getCurrentTimeInSeconds() -> Double?
+    func setSubscriptionFrequency(seconds: Int)
 }
 
 // MARK: - Output (callbacks)
@@ -30,6 +32,7 @@ public protocol PlayerControllerDelegate: AnyObject {
     func timelineDidChange(timePlayed: String, timeRemaining: String, percentage: Double)
     func millisecondsHeardDidChange(milliseconds: Int, percentage: Double)
     func playerDidFinishPlaying()
+    func playerInfoDidUpdate(_ playerInfo: PlayerInfo)
 }
 
 // MARK: - PlayerController
@@ -42,6 +45,8 @@ public class PlayerController {
     private var millisecondTimeObserverToken: Any?
 
     private var fiveSecondTimeObserverToken: Any?
+
+    private var customTimeObserverToken: Any?
 
     private var playerItemStatusObserver: NSKeyValueObservation?
 
@@ -63,6 +68,13 @@ public class PlayerController {
             }
             self.fiveSecondTimeObserverToken = nil
         }
+
+        if let customTimeObserverToken = customTimeObserverToken {
+            if let player = avPlayer {
+                player.removeTimeObserver(customTimeObserverToken)
+            }
+            self.customTimeObserverToken = nil
+        }
     }
 
     @objc private func handlePlayerDidFinishPlaying() {
@@ -74,6 +86,45 @@ public class PlayerController {
 extension PlayerController: PlayerControllerProtocol {
     public var isPlaying: Bool {
         avPlayer?.timeControlStatus == .playing
+    }
+
+    public var playerInfo: PlayerInfo {
+        guard let player = self.avPlayer,
+              let item = player.currentItem
+        else {
+            return PlayerInfo(percentage: nil, duration: nil, isPlaying: nil, playbackSpeed: nil)
+        }
+
+        let percentage = Double(player.currentTime().seconds / item.asset.duration.seconds)
+
+        guard percentage > 0 && percentage <= 100 else {
+            return PlayerInfo(percentage: nil,
+                              duration: item.asset.duration.seconds,
+                              isPlaying: player.timeControlStatus == .playing,
+                              playbackSpeed: player.rate)
+        }
+
+        return PlayerInfo(percentage: percentage,
+                          duration: item.asset.duration.seconds,
+                          isPlaying: player.timeControlStatus == .playing,
+                          playbackSpeed: player.rate)
+    }
+
+    public func setSubscriptionFrequency(seconds: Int) {
+        // Remove observer if needed
+        if let customTimeObserverToken = customTimeObserverToken {
+            if let player = avPlayer {
+                player.removeTimeObserver(customTimeObserverToken)
+            }
+            self.customTimeObserverToken = nil
+        }
+
+        // Add a new observer
+        let cmTime = CMTime(seconds: Double(seconds), preferredTimescale: CMTimeScale(NSEC_PER_SEC))
+        customTimeObserverToken = avPlayer?.addPeriodicTimeObserver(forInterval: cmTime, queue: .main) { [weak self] time in
+            guard let self = self else { return }
+            self.delegate?.playerInfoDidUpdate(self.playerInfo)
+        }
     }
 
     public func play(url: URL, rate: Double, position: Double, readyToPlay: @escaping (Result<Void, Error>) -> Void) {
