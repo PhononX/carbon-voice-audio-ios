@@ -64,7 +64,8 @@ extension CarbonVoiceAudioTests {
         let isPlaying = try XCTUnwrap(playerController.playerInfo.isPlaying)
         XCTAssertTrue(isPlaying)
 
-        XCTAssertEqual(0.8, playerController.playerInfo.playbackSpeed)
+        let playbackSpeed = try XCTUnwrap(playerController.playerInfo.playbackSpeed)
+        XCTAssertEqual(0.8, playbackSpeed, accuracy: 0.01)
     }
 
     func testPause() throws {
@@ -149,7 +150,7 @@ extension CarbonVoiceAudioTests {
         XCTAssertEqual(percentage, 0.50, accuracy: 0.01)
     }
 
-    func testSetPlaybackSpeed() {
+    func testSetPlaybackSpeed() throws {
         let expectation = self.expectation(description: "testSetPlaybackSpeed")
         var errorResult: Error?
 
@@ -173,7 +174,8 @@ extension CarbonVoiceAudioTests {
 
         XCTAssertNil(errorResult)
 
-        XCTAssertEqual(0.9, playerController.playerInfo.playbackSpeed)
+        let playbackSpeed = try XCTUnwrap(playerController.playerInfo.playbackSpeed)
+        XCTAssertEqual(0.9, playbackSpeed, accuracy: 0.01)
     }
 
     func testGetCurrentTimeInSeconds() {

@@ -9,7 +9,7 @@ import Foundation
 
 public struct PlayerInfo {
     public let percentage: Double?
-    public let duration: Double?
+    public let duration: Int?
     public let isPlaying: Bool?
-    public let playbackSpeed: Float?
+    public let playbackSpeed: Double?
 }

@@ -99,15 +99,15 @@ extension PlayerController: PlayerControllerProtocol {
 
         guard percentage > 0 && percentage <= 100 else {
             return PlayerInfo(percentage: nil,
-                              duration: item.asset.duration.seconds,
+                              duration: Int(item.asset.duration.seconds),
                               isPlaying: player.timeControlStatus == .playing,
-                              playbackSpeed: player.rate)
+                              playbackSpeed: Double(player.rate))
         }
 
         return PlayerInfo(percentage: percentage,
-                          duration: item.asset.duration.seconds,
+                          duration: Int(item.asset.duration.seconds),
                           isPlaying: player.timeControlStatus == .playing,
-                          playbackSpeed: player.rate)
+                          playbackSpeed: Double(player.rate))
     }
 
     public func setSubscriptionFrequency(seconds: Int) {
