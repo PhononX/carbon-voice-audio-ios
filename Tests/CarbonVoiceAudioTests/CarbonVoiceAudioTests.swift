@@ -6,7 +6,7 @@ import AVFoundation
 
 @available(watchOS 7.3, *)
 final class CarbonVoiceAudioTests: XCTestCase {
-
+    let token = "fakePxtoken"
     let audioController: AudioControllerProtocol = AudioController()
 
     let playerController: PlayerControllerProtocol = PlayerController()
@@ -44,7 +44,7 @@ extension CarbonVoiceAudioTests {
         let expectation = self.expectation(description: "testPlay")
         var errorResult: Error?
 
-        playerController.play(url: sampleAudioSoundURL, rate: 0.8, position: 0.0) { result in
+        playerController.play(url: sampleAudioSoundURL, pxtoken: token, rate: 0.8, position: 0.0) { result in
             switch result {
             case .success:
                 errorResult = nil
@@ -71,8 +71,8 @@ extension CarbonVoiceAudioTests {
     func testPause() throws {
         let expectation = self.expectation(description: "testPause")
         var errorResult: Error?
-
-        playerController.play(url: sampleAudioSoundURL, rate: 1.0, position: 0.0) { [weak self] result in
+        
+        playerController.play(url: sampleAudioSoundURL, pxtoken: token, rate: 1.0, position: 0.0) { [weak self] result in
             switch result {
             case .success:
                 errorResult = nil
@@ -98,7 +98,7 @@ extension CarbonVoiceAudioTests {
         let expectation = self.expectation(description: "testResume")
         var errorResult: Error?
 
-        playerController.play(url: sampleAudioSoundURL, rate: 1.0, position: 0.0) { [weak self] result in
+        playerController.play(url: sampleAudioSoundURL, pxtoken: token, rate: 1.0, position: 0.0) { [weak self] result in
             switch result {
             case .success:
                 errorResult = nil
@@ -125,7 +125,7 @@ extension CarbonVoiceAudioTests {
         let expectation = self.expectation(description: "testSeek")
         var errorResult: Error?
 
-        playerController.play(url: sampleAudioSoundURL, rate: 1.0, position: 0.0) { [weak self] result in
+        playerController.play(url: sampleAudioSoundURL, pxtoken: token, rate: 1.0, position: 0.0) { [weak self] result in
             switch result {
             case .success:
                 errorResult = nil
@@ -154,7 +154,7 @@ extension CarbonVoiceAudioTests {
         let expectation = self.expectation(description: "testSetPlaybackSpeed")
         var errorResult: Error?
 
-        playerController.play(url: sampleAudioSoundURL, rate: 1.5, position: 0.0) { [weak self] result in
+        playerController.play(url: sampleAudioSoundURL, pxtoken: token, rate: 1.5, position: 0.0) { [weak self] result in
             switch result {
             case .success:
                 errorResult = nil
@@ -182,7 +182,7 @@ extension CarbonVoiceAudioTests {
         let expectation = self.expectation(description: "testGetCurrentTimeInSeconds")
         var errorResult: Error?
 
-        playerController.play(url: sampleAudioSoundURL, rate: 1.0, position: 0.0) { [weak self] result in
+        playerController.play(url: sampleAudioSoundURL, pxtoken: token, rate: 1.0, position: 0.0) { [weak self] result in
             switch result {
             case .success:
                 errorResult = nil

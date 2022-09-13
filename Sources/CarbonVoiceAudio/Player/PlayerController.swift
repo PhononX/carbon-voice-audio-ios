@@ -15,7 +15,7 @@ public protocol PlayerControllerProtocol {
     var delegate: PlayerControllerDelegate? { get set }
     var isPlaying: Bool { get }
     var playerInfo: PlayerInfo { get }
-    func play(url: URL, rate: Double, position: Double, readyToPlay: @escaping (Result<Void, Error>) -> Void)
+    func play(url: URL, pxtoken: String, rate: Double, position: Double, readyToPlay: @escaping (Result<Void, Error>) -> Void)
     func pause()
     func resume()
     func seek(to percentage: Double)
@@ -127,7 +127,7 @@ extension PlayerController: PlayerControllerProtocol {
         }
     }
 
-    public func play(url: URL, rate: Double, position: Double, readyToPlay: @escaping (Result<Void, Error>) -> Void) {
+    public func play(url: URL, pxtoken:String, rate: Double, position: Double, readyToPlay: @escaping (Result<Void, Error>) -> Void) {
         #if os(watchOS)
         if AVAudioSession.sharedInstance().category != .playback ||
             AVAudioSession.sharedInstance().routeSharingPolicy != .longFormAudio ||
@@ -152,7 +152,11 @@ extension PlayerController: PlayerControllerProtocol {
 
         avPlayer?.pause()
 
-        avPlayer = AVPlayer(url: url)
+        let headers: [String: String] = [ "pxtoken": pxtoken ]
+        let asset = AVURLAsset(url: url, options: ["AVURLAssetHTTPHeaderFieldsKey": headers])
+        let playerItem = AVPlayerItem(asset: asset)
+                
+        avPlayer = AVPlayer(playerItem: playerItem)
 
         // Remove old notification observer
         NotificationCenter.default.removeObserver(self,
