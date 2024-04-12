@@ -23,7 +23,7 @@ public protocol RecorderControllerProtocol {
     func startOrResumeRecording() throws
     func pauseRecording()
     func endRecordingSession(completion: @escaping (RecorderController.AudioRecordingResult?) -> Void)
-    func setSubscriptionFrequency(seconds: Int)
+    func setSubscriptionFrequency(seconds: Double)
 }
 
 // MARK: - Output (callbacks)
@@ -100,12 +100,13 @@ public class RecorderController {
         timer = nil
     }
 
-    public func setSubscriptionFrequency(seconds: Int) {
+    public func setSubscriptionFrequency(seconds: Double) {
         customTimer?.invalidate()
         customTimer = nil
 
-        customTimer = Timer.scheduledTimer(withTimeInterval: Double(seconds), repeats: true, block: { [weak self] _ in
+        customTimer = Timer.scheduledTimer(withTimeInterval: seconds, repeats: true, block: { [weak self] _ in
             guard let self = self else { return }
+            self.audioRecorder?.updateMeters()
             let decibels = self.audioRecorder?.averagePower(forChannel: 0)
             self.delegate?.recordingInfoUpdate(decibels: decibels, duration: self.recordedTimeInSeconds)
         })
